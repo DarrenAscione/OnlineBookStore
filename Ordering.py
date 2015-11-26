@@ -27,7 +27,7 @@ def order(login_name, book_id, num_copy):
 				#Book does not exist
 				return "Unsuccessful \n Available Copies: %d"%(cursor.fetchone()[0])
 			else:
-				sql2 = "INSERT INTO OrderBook values ('%s', '%s')"%(login_name,book_id)
+				sql2 = "INSERT INTO OrderBook values ('%s', '%s', %s)"%(login_name,book_id,DATE())
 				for i in xrange(num_copy):
 					cursor.execute(sql2)
 				return "Successful!!"
@@ -138,7 +138,30 @@ def usefullness(login_name, rater_name, book, rates):
 	except:
 		return "Unsuccessful"
 
-#def book_browsing():
+def book_browsing(search_author,search_publisher,search_title,search_subject,sort):
+    if (search_author is none):
+        author = '%';
+    if (search_publisher is none):
+        publisher = '%';
+    if (search_title is none):
+        title = '%';
+    if (search_subject is none):
+        subject = '%';
+    
+    try:
+        con = mdb.connect(host = "localhost", user = "root", passwd ="", db = "tutorial")
+        if sort==1:
+            sql = "SELECT * from Book where title = 'search_title' and author = 'search_author' and publisher = 'search_publisher' and subject = 'search_subject' order by year_of_publication"
+        else:
+            sql ="SELECT b1.* from Book b1 join Feedback where b1.title = 'search_title' and b1.author = 'search_author' and b1.publisher = 'search_publisher' and b1.subject = 'search_subject' group by b1.ISBN order by AVG(score)"
+        
+        with con:
+            cursor = con.cursor
+            cursor.execute(sql)
+            return cursor.fetchall()
+    except:
+        return "Unsuccessful"
+
 
 def useful_feedback(book, n):
 	try:
@@ -170,24 +193,24 @@ def book_recommendation(login_name, book):
 	except:
 		return "Unsuccessful"
 
-def statistics(m, date):
+def statistics():
 	data = {}
 	month = int(date[4:6])
 	try:
 		con = mdb.connect(host = "localhost", user = "root", passwd ="", db = "tutorial")
 		with con:
 			cursor = con.cursor
-			sql = "SELECT book_id, count(*) as num from OrderBook where ____ currentmonth _____  group by book_id\
+			sql = "SELECT book_id, count(*) as num from OrderBook where MONTH(order_date) = MONTH(DATE())  group by book_id\
 				order by num desc"
 			cursor.execute(sql)
 			data[0].append(cursor.fetchall()[:m])
 			sql2 = "SELECT b1.author, count(*) as num from Book b1, OrderBook o1 where b1.ISBN = o1.book_id\
-					and ____ currentmonth _____ \
+					and MONTH(order_date) = MONTH(DATE())\
 					group by b1.author order by num desc"
 			cursor.execute(sql2)
 			data[1].append(cursor.fetchall()[:m])
 			sql3 = "SELECT b1.publisher, count(*) as num from Book b1, OrderBook o1 where b1.ISBN = o1.book_id\
-					and ____ currentmonth _____ \
+					and MONTH(order_date) = MONTH(DATE())\
 					group by b1.publisher order by num desc"
 			cursor.execute(sql3)
 			data[2].append(cursor.fetchall()[:m])
@@ -195,7 +218,7 @@ def statistics(m, date):
 	except:
 		return "Unsuccessful"
 
-
+		
 
 
 
